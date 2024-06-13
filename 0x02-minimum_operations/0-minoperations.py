@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ Minimum Operations """
 
+
 def minOperations(n):
     """Func doc"""
     if n <= 1:
@@ -14,5 +15,5 @@ def minOperations(n):
             operations += factor
             n //= factor
         factor += 1
-    
+
     return operations
