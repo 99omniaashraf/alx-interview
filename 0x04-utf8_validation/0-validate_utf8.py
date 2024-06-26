@@ -1,28 +1,60 @@
-def validUTF8(data):
-    def check_following_bytes(start, count):
-        for i in range(start + 1, start + count + 1):
-            if i >= len(data) or data[i] >> 6 != 0b10:
-                return False
-        return True
+#!/usr/bin/python3
+"""UTF-8 validation module.
+"""
 
-    i = 0
-    while i < len(data):
-        byte = data[i]
-        if byte >> 7 == 0:  # 1-byte character
-            i += 1
+
+def validUTF8(data):
+    """Checks if a list of integers are valid UTF-8 codepoints.
+    """
+    skip = 0
+    n = len(data)
+    for i in range(n):
+        if skip > 0:
+            skip -= 1
             continue
-        elif byte >> 5 == 0b110:  # 2-byte character
-            if not check_following_bytes(i, 1):
+        if type(data[i]) != int or data[i] < 0 or data[i] > 0x10ffff:
+            return False
+        elif data[i] <= 0x7f:
+            skip = 0
+        elif data[i] & 0b11111000 == 0b11110000:
+            # 4-byte utf-8 character encoding
+            span = 4
+            if n - i >= span:
+                next_body = list(map(
+                    lambda x: x & 0b11000000 == 0b10000000,
+                    data[i + 1: i + span],
+                ))
+                if not all(next_body):
+                    return False
+                skip = span - 1
+            else:
                 return False
-            i += 2
-        elif byte >> 4 == 0b1110:  # 3-byte character
-            if not check_following_bytes(i, 2):
+        elif data[i] & 0b11110000 == 0b11100000:
+            # 3-byte utf-8 character encoding
+            span = 3
+            if n - i >= span:
+                next_body = list(map(
+                    lambda x: x & 0b11000000 == 0b10000000,
+                    data[i + 1: i + span],
+                ))
+                if not all(next_body):
+                    return False
+                skip = span - 1
+            else:
                 return False
-            i += 3
-        elif byte >> 3 == 0b11110:  # 4-byte character
-            if not check_following_bytes(i, 3):
+        elif data[i] & 0b11100000 == 0b11000000:
+            # 2-byte utf-8 character encoding
+            span = 2
+            if n - i >= span:
+                next_body = list(map(
+                    lambda x: x & 0b11000000 == 0b10000000,
+                    data[i + 1: i + span],
+                ))
+                if not all(next_body):
+                    return False
+                skip = span - 1
+            else:
                 return False
-            i += 4
         else:
             return False
     return True
