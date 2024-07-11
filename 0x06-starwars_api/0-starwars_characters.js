@@ -39,3 +39,4 @@ const exactOrder = (characters, index) => {
     exactOrder(characters, index + 1);
   });
 };
+
